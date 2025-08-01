@@ -1,7 +1,7 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import { GoogleGenAI } from '@google/genai';
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
 
@@ -15,20 +15,26 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
-app.post('/gemini', async (req, res) => {
+app.post("/gemini", async (req, res) => {
   try {
     const { prompt } = req.body;
+    console.log(prompt);
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: "gemini-2.5-flash",
       contents: prompt,
     });
 
-    const text = response.text();
+    // Clean up response
+    const text = response.candidates[0].content.parts[0].text
+      .replace(/\*\*(.*?)\*\*/g, "$1")
+      .trim();
     res.json({ reply: text });
   } catch (error) {
-    console.error('Gemini API error:', error.message);
-    res.status(500).json({ error: 'Failed to generate content from Gemini API.' });
+    console.error("Gemini API error:", error.message);
+    res
+      .status(500)
+      .json({ error: "Failed to generate content from Gemini API." });
   }
 });
 
